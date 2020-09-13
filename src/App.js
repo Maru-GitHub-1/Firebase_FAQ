@@ -21,8 +21,7 @@ function App() {
   const [documentId, setDocumentId] = useState('');
 
   useEffect(() => {
-    // componentDidUpdateは描画のrender毎ではなく、
-    // stateの更新毎を検知?
+    // mount定義 -> renderでDOMが切り替わる
     const db = firebase.firestore();
     // onSnapshotでcollectionの更新を検知
     const unsubscribe = db.collection('foods').orderBy('weight', 'desc').onSnapshot((quertSnapshot) => {
