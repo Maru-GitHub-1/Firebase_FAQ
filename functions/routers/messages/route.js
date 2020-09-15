@@ -1,32 +1,69 @@
 const express = require('express');
+const admin = require('firebase-admin');
+admin.initializeApp();
 
 const router = express.Router();
 
-const endPoint = '/messages'
+const endPoint = '/foods'
+
+const db = admin.firestore();
 
 router
   .route(endPoint)
-  .get((req, res) => {
+  .get(async (req, res) => {
+    const foods = [];
+    try {
+      // getがプロミスで帰ってくるからasync/await
+      const querySnapShot = await db.collection('foods').get()
+      querySnapShot.forEach(doc => {
+        foods.push({
+          foodId: doc.id,
+          ...doc.data()
+        });
+      });
+    } catch (error) {
+      console.log(error, '@@@@@')
+    }
     res.json({
-      message: 'Called by the GET method'
-    });
+      food: 'Called by the GET method',
+      foods
+    })
   })
-  .post((req, res) => {
-    res.json({
-      message: 'Called by the POST method'
-    });
+  
+  .post(async (req, res) => {
+    const { name, weight } = req.body;
+    try {
+      // .set ではなく .add でIDが自動生成される
+      const docRef = await db.collection('foods').add({
+        name,
+        weight
+      });
+
+      const docSnapShot = await docRef.get();
+      const createdFood = {
+        id: docSnapShot.id,
+        ...docSnapShot.data()
+      };
+
+      res.json({
+        message: 'Called by the POST methods',
+        data: createdFood
+      });
+    } catch (error) {
+      console.log(error, '@@@@@');
+    }
   })
 
 router
   .route(`${endPoint}/:id`)
   .put((req, res) => {
     res.json({
-      message: `Called by the PUT method  ID: ${req.params.id}`
+      food: `Called by the PUT method  ID: ${req.params.id}`
     });
   })
   .delete((req, res) => {
     res.json({
-      message: `Called by the DELETE method  ID: ${req.params.id}`
+      food: `Called by the DELETE method  ID: ${req.params.id}`
     });
   })
 
